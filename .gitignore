@@ -1,0 +1,21 @@
+# ---- large artifacts (do NOT upload to GitHub) ----
+output/
+pretrained/
+*.pth
+*.pt
+
+# ---- python cache / build ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.ipynb_checkpoints/
+
+# ---- compiled MSDeformAttn ops (rebuild with models/ops/make.sh) ----
+models/ops/build/
+models/ops/dist/
+models/ops/*.so
+models/ops/**/*.so
+
+# ---- misc ----
+.DS_Store
+*.log
