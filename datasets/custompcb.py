@@ -8,7 +8,9 @@ from torchvision.transforms import InterpolationMode
 from PIL import Image, ImageEnhance, ImageFilter
 
 from .coco import CocoDetection
-from .robustness import apply_eval_test_perturbation, build_eval_test_perturbation_args
+from .robustness import (apply_eval_test_perturbation, build_eval_test_perturbation_args,
+                         apply_eval_template_perturbation, build_eval_template_perturbation_args,
+                         apply_train_template_misalignment, build_train_template_misalign_args)
 import datasets.transforms as T
 
 
@@ -85,18 +87,20 @@ def apply_gerber_template_augmentation(
 
 class CustomPCBDetection(CocoDetection):
     def __init__(self, img_folder, ann_file, transforms, return_masks, use_template=False, apply_affine=False,
-                 eval_test_perturbation=None, image_set='train', open_set_defect_mode='none',
+                 eval_test_perturbation=None, eval_template_perturbation=None, image_set='train', open_set_defect_mode='none',
                  open_set_holdout_class='', open_set_defect_name='defect',
                  gerber_template_aug=False, gerber_template_aug_prob=1.0,
                  gerber_aug_line_width_prob=0.5, gerber_aug_blur=0.8,
                  gerber_aug_brightness=0.2, gerber_aug_contrast=0.2,
                  gerber_aug_color=0.15, gerber_aug_noise_std=0.02,
                  template_ablation_mode='normal', template_shuffle_offset=1,
-                 mask_annotation_path=''):
+                 mask_annotation_path='', train_template_misalign=None):
         super().__init__(img_folder, ann_file, transforms=transforms, return_masks=return_masks)
         self.use_template = use_template
         self.apply_affine = apply_affine
         self.eval_test_perturbation = eval_test_perturbation
+        self.eval_template_perturbation = eval_template_perturbation
+        self.train_template_misalign = train_template_misalign
         self.image_set = image_set
         self.mask_annotations = self._load_mask_annotations(mask_annotation_path)
         self.gerber_template_aug = gerber_template_aug
@@ -360,6 +364,12 @@ class CustomPCBDetection(CocoDetection):
         img, target = apply_eval_test_perturbation(
             img, target, self.eval_test_perturbation, image_id=image_id)
 
+        if template_img is not None:
+            template_img = apply_eval_template_perturbation(
+                template_img, self.eval_template_perturbation, image_id=image_id)
+            template_img = apply_train_template_misalignment(
+                template_img, self.train_template_misalign)
+
         if self.apply_affine:
             img, template_img, target = apply_random_affine_pair(img, template_img, target)
 
@@ -444,6 +454,8 @@ def build_custompcb_variant(image_set, args, path_attr, train_ann_name, val_ann_
         use_template=getattr(args, 'use_template', False),
         apply_affine=(image_set == 'train' and getattr(args, 'use_affine', False)),
         eval_test_perturbation=build_eval_test_perturbation_args(args, image_set),
+        eval_template_perturbation=build_eval_template_perturbation_args(args, image_set),
+        train_template_misalign=build_train_template_misalign_args(args, image_set),
         image_set=image_set,
         open_set_defect_mode=getattr(args, 'open_set_defect_mode', 'none'),
         open_set_holdout_class=getattr(args, 'open_set_holdout_class', ''),

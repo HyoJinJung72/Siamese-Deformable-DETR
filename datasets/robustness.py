@@ -1,9 +1,47 @@
 import math
+import random
 
 import numpy as np
 import torch
 import torchvision.transforms.functional as TF
 from PIL import ImageEnhance, ImageFilter
+
+
+def build_train_template_misalign_args(args, image_set):
+    """Training-time misalignment augmentation config, applied to the TEMPLATE only.
+
+    Returns None outside the training split or when every magnitude is 0.
+    ``translate`` is in pixels, ``rotate`` in degrees, ``scale`` as a +/- fraction.
+    """
+    if image_set != 'train':
+        return None
+    translate = getattr(args, 'train_template_misalign_translate', 0.0)
+    rotate = getattr(args, 'train_template_misalign_rotate', 0.0)
+    scale = getattr(args, 'train_template_misalign_scale', 0.0)
+    if translate <= 0 and rotate <= 0 and scale <= 0:
+        return None
+    return {'translate': translate, 'rotate': rotate, 'scale': scale}
+
+
+def apply_train_template_misalignment(template_image, misalign_args):
+    """Apply a random small geometric offset to the template only (training aug).
+
+    The test image and the target boxes are left untouched: in practice it is the
+    reference that drifts relative to the inspection image, so the model learns to
+    tolerate that drift rather than assuming a pixel-perfect reference.
+    """
+    if template_image is None or misalign_args is None:
+        return template_image
+    t = misalign_args.get('translate', 0.0)
+    r = misalign_args.get('rotate', 0.0)
+    s = misalign_args.get('scale', 0.0)
+    dx = random.uniform(-t, t) if t > 0 else 0.0
+    dy = random.uniform(-t, t) if t > 0 else 0.0
+    angle = random.uniform(-r, r) if r > 0 else 0.0
+    scale = 1.0 + random.uniform(-s, s) if s > 0 else 1.0
+    return TF.affine(template_image, angle=angle,
+                     translate=[int(round(dx)), int(round(dy))],
+                     scale=scale, shear=0.0)
 
 
 def build_eval_test_perturbation_args(args, image_set):
@@ -23,6 +61,41 @@ def build_eval_test_perturbation_args(args, image_set):
         'scale': scale,
         'seed': getattr(args, 'eval_test_perturb_seed', 42),
     }
+
+
+def build_eval_template_perturbation_args(args, image_set):
+    """Perturbation applied to the *template* image at eval time.
+
+    Unlike ``--eval_test_perturb``, this leaves the test image and its boxes
+    untouched, so COCO evaluation (which scores against the original, unmodified
+    annotations) stays valid. Only the test/template alignment is broken, which
+    is exactly the quantity an alignment-robustness study needs to vary.
+    """
+    perturb_type = getattr(args, 'eval_template_perturb', 'none')
+    if image_set != 'val' or perturb_type == 'none':
+        return None
+    value = getattr(args, 'eval_template_perturb_value', 0.0)
+    scale = getattr(args, 'eval_template_perturb_scale', 1.0)
+    if perturb_type == 'scale' and value != 0.0:
+        scale = value
+    return {
+        'type': perturb_type,
+        'value': value,
+        'dx': getattr(args, 'eval_template_perturb_dx', 0.0),
+        'dy': getattr(args, 'eval_template_perturb_dy', 0.0),
+        'angle': getattr(args, 'eval_template_perturb_angle', 0.0),
+        'scale': scale,
+        'seed': getattr(args, 'eval_template_perturb_seed', 42),
+    }
+
+
+def apply_eval_template_perturbation(template_image, perturb_args, image_id=0):
+    """Apply a perturbation to the template image only (no target to update)."""
+    if template_image is None:
+        return None
+    image, _ = apply_eval_test_perturbation(template_image, None, perturb_args,
+                                            image_id=image_id)
+    return image
 
 
 def _filter_target_by_keep(target, keep):

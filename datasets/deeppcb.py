@@ -6,7 +6,9 @@ import torchvision.transforms.functional as TF
 from PIL import Image
 
 from .coco import CocoDetection, make_coco_transforms
-from .robustness import apply_eval_test_perturbation, build_eval_test_perturbation_args
+from .robustness import (apply_eval_test_perturbation, build_eval_test_perturbation_args,
+                         apply_eval_template_perturbation, build_eval_template_perturbation_args,
+                         apply_train_template_misalignment, build_train_template_misalign_args)
 
 
 def apply_random_affine_pair(image, template_image, target, translate=(0.1, 0.1), scale=(0.9, 1.1)):
@@ -42,7 +44,8 @@ def apply_random_affine_pair(image, template_image, target, translate=(0.1, 0.1)
 
 class DeepPCBDetection(CocoDetection):
     def __init__(self, img_folder, ann_file, transforms, return_masks, use_template=False, apply_affine=False,
-                 eval_test_perturbation=None):
+                 eval_test_perturbation=None, eval_template_perturbation=None,
+                 train_template_misalign=None):
         super().__init__(
             img_folder,
             ann_file,
@@ -54,6 +57,8 @@ class DeepPCBDetection(CocoDetection):
         )
         self.apply_affine = apply_affine
         self.eval_test_perturbation = eval_test_perturbation
+        self.eval_template_perturbation = eval_template_perturbation
+        self.train_template_misalign = train_template_misalign
 
     def __getitem__(self, idx):
         img, target = super(CocoDetection, self).__getitem__(idx)
@@ -72,6 +77,12 @@ class DeepPCBDetection(CocoDetection):
 
         img, target = apply_eval_test_perturbation(
             img, target, self.eval_test_perturbation, image_id=image_id)
+
+        if template_img is not None:
+            template_img = apply_eval_template_perturbation(
+                template_img, self.eval_template_perturbation, image_id=image_id)
+            template_img = apply_train_template_misalignment(
+                template_img, self.train_template_misalign)
 
         if self.apply_affine:
             img, template_img, target = apply_random_affine_pair(img, template_img, target)
@@ -114,5 +125,7 @@ def build(image_set, args):
         use_template=getattr(args, 'use_template', False),
         apply_affine=(image_set == 'train' and getattr(args, 'use_affine', False)),
         eval_test_perturbation=build_eval_test_perturbation_args(args, image_set),
+        eval_template_perturbation=build_eval_template_perturbation_args(args, image_set),
+        train_template_misalign=build_train_template_misalign_args(args, image_set),
     )
     return dataset

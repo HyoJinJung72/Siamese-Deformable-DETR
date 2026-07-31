@@ -188,6 +188,57 @@ def get_args_parser():
     parser.add_argument('--save_dual_gate_stats', action='store_true',
                         help='Save learned Dual TFFN basic/diff gate weights during evaluation')
 
+    # Alignment-robustness evaluation: perturb only the test image (and its boxes)
+    # at eval time, leaving the template untouched, so that the test/template pair
+    # becomes misaligned by a controlled amount.
+    parser.add_argument('--eval_test_perturb', default='none',
+                        choices=['none', 'translate', 'rotate', 'scale', 'affine',
+                                 'brightness', 'contrast', 'blur', 'noise'],
+                        help='Perturbation applied to the val test image to simulate misalignment')
+    parser.add_argument('--eval_test_perturb_value', default=0.0, type=float,
+                        help='Generic perturbation magnitude used when the type-specific value is 0')
+    parser.add_argument('--eval_test_perturb_dx', default=0.0, type=float,
+                        help='Horizontal shift in pixels for --eval_test_perturb translate/affine')
+    parser.add_argument('--eval_test_perturb_dy', default=0.0, type=float,
+                        help='Vertical shift in pixels for --eval_test_perturb translate/affine')
+    parser.add_argument('--eval_test_perturb_angle', default=0.0, type=float,
+                        help='Rotation in degrees for --eval_test_perturb rotate/affine')
+    parser.add_argument('--eval_test_perturb_scale', default=1.0, type=float,
+                        help='Scale factor for --eval_test_perturb scale/affine')
+    parser.add_argument('--eval_test_perturb_seed', default=42, type=int,
+                        help='Seed for stochastic perturbations (noise)')
+
+    # Preferred knob for alignment-robustness studies: perturb only the TEMPLATE.
+    # The test image and its annotations are left untouched, so COCO evaluation
+    # (which scores against the original annotation file) stays valid, and a
+    # reference-free model is exactly invariant by construction.
+    parser.add_argument('--eval_template_perturb', default='none',
+                        choices=['none', 'translate', 'rotate', 'scale', 'affine',
+                                 'brightness', 'contrast', 'blur', 'noise'],
+                        help='Perturbation applied to the val template image to simulate misalignment')
+    parser.add_argument('--eval_template_perturb_value', default=0.0, type=float,
+                        help='Generic perturbation magnitude used when the type-specific value is 0')
+    parser.add_argument('--eval_template_perturb_dx', default=0.0, type=float,
+                        help='Horizontal template shift in pixels for translate/affine')
+    parser.add_argument('--eval_template_perturb_dy', default=0.0, type=float,
+                        help='Vertical template shift in pixels for translate/affine')
+    parser.add_argument('--eval_template_perturb_angle', default=0.0, type=float,
+                        help='Template rotation in degrees for rotate/affine')
+    parser.add_argument('--eval_template_perturb_scale', default=1.0, type=float,
+                        help='Template scale factor for scale/affine')
+    parser.add_argument('--eval_template_perturb_seed', default=42, type=int,
+                        help='Seed for stochastic template perturbations (noise)')
+
+    # Training-time misalignment augmentation: perturb ONLY the template with a small
+    # random geometric offset each step so the model learns to tolerate test/template
+    # misregistration. The test image and target boxes are left untouched.
+    parser.add_argument('--train_template_misalign_translate', default=0.0, type=float,
+                        help='Max random template shift in pixels during training (0 disables)')
+    parser.add_argument('--train_template_misalign_rotate', default=0.0, type=float,
+                        help='Max random template rotation in degrees during training (0 disables)')
+    parser.add_argument('--train_template_misalign_scale', default=0.0, type=float,
+                        help='Max random template scale jitter as a +/- fraction during training (0 disables)')
+
     return parser
 
 

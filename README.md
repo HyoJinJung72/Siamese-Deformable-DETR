@@ -95,6 +95,34 @@ python main.py --dataset_file custompcb_class4_full --custom_pcb_path /path/to/C
   --epochs 50 --lr_drop 40 --batch_size 2 --output_dir output/custompcb_tcdf
 ```
 
+### Misalignment robustness
+
+Reference-based inspection assumes the reference and test images are aligned; in practice small
+translation/rotation offsets occur. Two independent mechanisms are provided:
+
+- **Train time** — inject a small random offset into the *template only* so the model learns to
+  tolerate misregistration (no architecture change, no extra parameters):
+  `--train_template_misalign_translate <px> --train_template_misalign_rotate <deg>`
+- **Eval time** — perturb the *template only* (test image and boxes untouched, so COCO scoring
+  stays valid and a reference-free model is invariant by construction):
+  `--eval_template_perturb {translate,rotate,scale,affine} --eval_template_perturb_dx/dy/angle <v>`
+
+```bash
+# Train with misalignment injection (translate +/-8px, rotate +/-3deg)
+python main.py --dataset_file deeppcb --deep_pcb_path /path/to/DeepPCB \
+  --use_template --use_tcdf --train_template_misalign_translate 8 --train_template_misalign_rotate 3 \
+  --epochs 50 --lr_drop 40 --batch_size 2 --output_dir output/deeppcb_tcdf_misalign
+
+# Evaluate a template-shift sweep (delta = 8px)
+python main.py --dataset_file deeppcb --deep_pcb_path /path/to/DeepPCB \
+  --use_template --use_tcdf --resume output/deeppcb_tcdf_misalign/checkpoint_best.pth --eval \
+  --eval_template_perturb translate --eval_template_perturb_dx 8 --eval_template_perturb_dy 8 \
+  --output_dir output/deeppcb_tcdf_misalign_d8
+```
+
+`tools/run_phase1_alignment.sh` and `tools/eval_align_model.sh` run the full translation/rotation
+sweeps; `tools/collect_phase1_alignment.py` tabulates the AP results.
+
 ### Useful options
 
 - `--template_ablation_mode {normal,zero,test_as_template,shuffled}` - template ablation (checks
