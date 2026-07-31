@@ -123,6 +123,27 @@ python main.py --dataset_file deeppcb --deep_pcb_path /path/to/DeepPCB \
 `tools/run_phase1_alignment.sh` and `tools/eval_align_model.sh` run the full translation/rotation
 sweeps; `tools/collect_phase1_alignment.py` tabulates the AP results.
 
+### Synthetic defect generation (CutPaste)
+
+`tools/cutpaste_custom_pcb.py` builds the synthetic-defect training data used on CustomPCB. A real
+defect is cut from a defective board and pasted onto a normal board with **registered placement**
+(phase-correlation alignment to the matching circuit location) and **feather blending**
+(`--defect-blend-sigma`, a Gaussian-softened paste boundary so the model learns the defect, not the
+seam). It needs the raw CustomPCB boards + a CVAT mask XML, and reproduces the dataset
+deterministically for a given `--seed`.
+
+```bash
+python tools/cutpaste_custom_pcb.py \
+  --data-root /path/to/CustomPCB_class4 --mask-xml /path/to/annotations_class4.xml \
+  --output-dir /path/to/out/CustomPCB_cutpaste --splits train val \
+  --defect-boards num1,...,num8 --normal-boards num1,...,num9 --exclude-boards num3 \
+  --normal-source all_normal --placement aligned --require-aligned-target \
+  --ref-policy same_class --ref-match-scope same_sample \
+  --combination-sampling unique_cycle --no-combination-recycle \
+  --composite-mode cutpaste --cutpaste-placement registered \
+  --source-blend feather --defect-blend-sigma 1.0 --samples-per-class 100 --seed 20260703
+```
+
 ### Useful options
 
 - `--template_ablation_mode {normal,zero,test_as_template,shuffled}` - template ablation (checks
