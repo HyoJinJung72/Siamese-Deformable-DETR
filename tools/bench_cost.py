@@ -4,15 +4,22 @@
 Template 분기가 있는 방법은 test + template 를 함께 forward 하여
 backbone 2회 통과 비용까지 포함해 공정하게 측정한다.
 
-사용 예 (Single):
-  python bench_cost.py --dataset_file custompcb_class4_full \
-    --custom_pcb_path /home/jhj/data/CustomPCB_full_class4
+사용 예 (Single, repo 루트에서 실행):
+  python tools/bench_cost.py --dataset_file custompcb_class4_full \
+    --custom_pcb_path /path/to/CustomPCB
 
 Basic TFFN:  ... --use_template
 Dual TFFN :  ... --use_template --use_tcdf
 """
+import os
+import sys
 import time
 import argparse
+
+# This script lives in tools/; make the repository root importable so that the
+# main / models / datasets / util packages resolve when run as tools/bench_cost.py.
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import torch
 
 from main import get_args_parser as get_main_args_parser

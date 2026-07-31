@@ -61,7 +61,7 @@ CustomPCB/
     `-- custom_val_class4.json
 ```
 Each image entry carries a `group_image_list` pointing to its Gerber template.
-Leave-one-board-out folds can be generated with `build_lobo_fold.py` / `build_ablation_folds.sh`.
+Leave-one-board-out folds can be generated with `tools/build_lobo_fold.py`.
 
 ### Gerber file converter
 
@@ -108,8 +108,6 @@ python main.py --dataset_file deeppcb --deep_pcb_path /path/to/DeepPCB \
   --use_template --use_tcdf --resume output/deeppcb_tcdf/checkpoint_best.pth --eval \
   --output_dir output/deeppcb_tcdf_eval
 ```
-
-`run_deeppcb_avg.sh` runs single / basic / TCDF (+ class-balanced) over 5 seeds and reports mean+/-std.
 
 ### CustomPCB
 
@@ -185,9 +183,10 @@ main.py                     # train / eval entry
 engine.py                   # train_one_epoch / evaluate (+ CAM / TCDF-analysis saving)
 models/deformable_detr.py   # Siamese backbone + TCDF + detector (build_model)
 datasets/                   # deeppcb.py, custompcb*.py, transforms, coco utils
-run_deeppcb_avg.sh          # DeepPCB single/basic/TCDF (5-seed) driver
-build_lobo_fold.py          # leave-one-board-out fold builder (CustomPCB)
-bench_cost.py               # #Params / FLOPs / Latency / FPS benchmark
+tools/build_lobo_fold.py    # leave-one-board-out fold builder (CustomPCB)
+tools/bench_cost.py         # #Params / FLOPs / Latency / FPS benchmark
+tools/gerber_visualizer.py  # Gerber -> template image renderer
+tools/cutpaste_custom_pcb.py # CutPaste synthetic defect generator
 ```
 
 > Large artifacts (`output/`, `pretrained/`, checkpoints) are gitignored and not tracked.
