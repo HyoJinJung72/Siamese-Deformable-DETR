@@ -49,6 +49,10 @@ Datasets are **not** included in this repository. Expected layouts:
 (paired defect-free template / defective test images with COCO-style annotations).
 
 **CustomPCB** - `--dataset_file custompcb_class4_full --custom_pcb_path /path/to/CustomPCB`
+
+The CustomPCB dataset is available for download here:
+[Google Drive](https://drive.google.com/file/d/170-tRWLfrEiDTXvxuHT7AuTwjCv7BDOm/view?usp=drive_link).
+
 ```
 CustomPCB/
 |-- images/{train,val}/            # inspection images + gerber templates
