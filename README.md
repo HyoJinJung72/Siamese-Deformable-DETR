@@ -132,12 +132,10 @@ sweeps; `tools/collect_phase1_alignment.py` tabulates the AP results.
 
 ## Results (DeepPCB)
 
-| Model | AP50 | AP75 | AP50-95 | Template |
+| Model | AP50 | AP75 | AP50-95 |
 |---|---|---|---|---|
-| YOLO-HDEW | 98.9 | - | 80.1 | No |
-| LPViT | 98.8 | 97.6 | - | No |
-| PIDDN | 98.4 | 84.3 | 69.8 | Yes |
-| **Ours (TCDF)** | **99.0** | 95.2 | **81.5** | Yes |
+| PIDDN | 98.4 | 84.3 | 69.8 |
+| **Ours (TCDF)** | **99.0** | 95.2 | **81.5** |
 
 On CustomPCB (AP50): Single 0.258 -> Basic 0.430 -> **TCDF 0.527**, and **0.609** with CutPaste augmentation.
 
