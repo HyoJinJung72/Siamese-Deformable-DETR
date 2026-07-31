@@ -130,13 +130,6 @@ sweeps; `tools/collect_phase1_alignment.py` tabulates the AP results.
 - `--class_balanced_sampling sqrt_inverse` - image-level balanced sampling for minority classes.
 - `--save_eval_cam` / `--save_eval_tffn_analysis` - save CAM / TCDF feature-map visualizations.
 
-## Results (DeepPCB)
-
-| Model | AP50 | AP75 | AP50-95 |
-|---|---|---|---|---|
-| PIDDN | 98.4 | 84.3 | 69.8 |
-| **Ours (TCDF)** | **99.0** | 95.2 | **81.5** |
-
 On CustomPCB (AP50): Single 0.258 -> Basic 0.430 -> **TCDF 0.527**, and **0.609** with CutPaste augmentation.
 
 ## Repository layout
