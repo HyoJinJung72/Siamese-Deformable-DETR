@@ -63,6 +63,27 @@ CustomPCB/
 Each image entry carries a `group_image_list` pointing to its Gerber template.
 Leave-one-board-out folds can be generated with `build_lobo_fold.py` / `build_ablation_folds.sh`.
 
+### Gerber file converter
+
+`tools/gerber_visualizer.py` renders a directory of RS-274D/RS-274X Gerber files into a
+PCB-like image that is used as the defect-free reference (template). It parses the design
+layers (copper, solder mask, silkscreen, drill) and composites them with realistic colors and
+shading so that the rendered template resembles the captured inspection image, reducing the
+template/inspection appearance gap at the input level.
+
+```bash
+# Render a Gerber directory to images
+python tools/gerber_visualizer.py /path/to/gerber_dir --out output/gerber_render
+
+# higher-resolution raster export (default 1200 DPI)
+python tools/gerber_visualizer.py /path/to/gerber_dir --out output/gerber_render --image-dpi 1200
+```
+
+The input directory should contain the Gerber layer files
+(e.g., `COMP-P`, `SOLD-P`, `C-MASK`, `S-MASK`, `C-SILK`, `S-SILK`, `DRILL`) together with the
+`AA.ENV` aperture/metadata file. Outputs include the composite SVG, an HTML PCB viewer, and a
+rasterized PNG/JPG that is used as the template image.
+
 ## Usage
 
 Three model variants share the same command; flags select the fusion:
