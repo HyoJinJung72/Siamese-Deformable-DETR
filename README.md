@@ -51,7 +51,7 @@ Datasets are **not** included in this repository. Expected layouts:
 **CustomPCB** - `--dataset_file custompcb_class4_full --custom_pcb_path /path/to/CustomPCB`
 
 The CustomPCB dataset is available for download here:
-[Google Drive](https://drive.google.com/file/d/170-tRWLfrEiDTXvxuHT7AuTwjCv7BDOm/view?usp=drive_link).
+[Google Drive]([https://drive.google.com/file/d/170-tRWLfrEiDTXvxuHT7AuTwjCv7BDOm/view?usp=drive_link](https://drive.google.com/file/d/12y8uy-cCPe-vEGSthVuFYk9Y5ony5pdi/view?usp=drive_link)).
 
 ```
 CustomPCB/
